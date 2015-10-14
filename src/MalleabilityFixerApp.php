@@ -6,7 +6,6 @@ namespace BitWasp\Fixer;
 use BitWasp\Bitcoin\Bitcoin;
 use BitWasp\Bitcoin\Crypto\EcAdapter\EcAdapterFactory;
 use BitWasp\Bitcoin\Crypto\EcAdapter\Impl\PhpEcc\Signature\Signature;
-use BitWasp\Bitcoin\Networking\Messages\Addr;
 use BitWasp\Bitcoin\Networking\Messages\GetData;
 use BitWasp\Bitcoin\Networking\Messages\Inv;
 use BitWasp\Bitcoin\Networking\Messages\Tx;
@@ -20,7 +19,6 @@ use BitWasp\Bitcoin\Signature\TransactionSignatureInterface;
 use BitWasp\Bitcoin\Transaction\Transaction;
 use BitWasp\Bitcoin\Transaction\TransactionInput;
 use BitWasp\Bitcoin\Transaction\TransactionInputCollection;
-use BitWasp\Bitcoin\Transaction\TransactionInputInterface;
 use BitWasp\Bitcoin\Transaction\TransactionInterface;
 use BitWasp\Buffertools\Buffer;
 use React\Socket\Server as ReactServer;
@@ -93,26 +91,28 @@ class MalleabilityFixerApp
 
         $locator->queryDnsSeeds()->then(
             function (Locator $locator) {
-                $this->manager->connectToPeers($locator, 8)->then(function () {
-                    $this->loop->addPeriodicTimer(15, function () {
-                        echo "Have seen " . $this->inputs . " inputs and " . $this->counter . " high-S signatures \n";
-                        echo "There are " . count($this->violators) . " violators \n";
+                $this->manager->connectToPeers($locator, 8);
 
-                        $largest = null;
-                        $worstPeer = null;
-                        foreach ($this->violators as $ip => $v) {
-                            if ($v > $largest) {
-                                $worstPeer = $ip;
-                            }
+                $this->loop->addPeriodicTimer(30, function () {
+                    echo "Have seen " . $this->inputs . " inputs and " . $this->counter . " high-S signatures \n";
+                    echo "There are " . count($this->violators) . " violators \n";
+
+                    $largest = 0;
+                    $worstPeer = null;
+                    foreach ($this->violators as $ip => $v) {
+                        if ($v > $largest) {
+                            $worstPeer = $ip;
+                            $largest = $v;
                         }
+                    }
 
-                        if (!is_null($worstPeer)) {
-                            echo "Worst peer: $worstPeer ($largest)\n";
-                        }
-                    });
-
-                    echo "done!!\n";
+                    if (!is_null($worstPeer)) {
+                        echo "Worst peer: $worstPeer ($largest)\n";
+                    }
                 });
+
+                echo "Connecting..\n";
+
             }
         );
     }
@@ -185,10 +185,9 @@ class MalleabilityFixerApp
             $wasMalleated = false;
             $transaction = $this->fixTransaction($sender, $current, $wasMalleated);
             $newHash = $transaction->getTransactionId();
-            $this->haveTx[pack("H*", $hash)] = $current;
-            $this->haveTx[pack("H*", $newHash)] = $transaction;
 
             if ($wasMalleated) {
+                $this->haveTx[pack("H*", $newHash)] = $transaction;
                 echo "Was malleated: $hash - sending to " . (count($this->peers)-1) . "\n";
                 foreach ($this->peers as $peer) {
                     if ($sender !== $peer) {
@@ -263,7 +262,6 @@ class MalleabilityFixerApp
 
             $wasMalleated = true;
             $this->counter++;
-            echo "was malleated\n";
             $txSig = new TransactionSignature(
                 $this->adapter,
                 new Signature($this->adapter, $sig->getR(), $this->math->sub($this->order, $sig->getS())),
