@@ -15,3 +15,14 @@ High-S malleability fixer
  by changing them to it's low-s form. Approximately 95% of recent transactions have used the low-s form, and it 
  has been proposed on several occasions to have nodes automatically fix high-s signatures, as it saves a few bits per signature.
  
+ It's use is not encouraged, I just wanted to write a proof of concept. 
+ 
+ ### Setup
+ 
+    git clone https://github.com/Bit-Wasp/malleability-fixer.git
+    cd malleability-fixer  
+    composer install
+ 
+ And to run the application:
+ 
+     bin/app
