@@ -91,7 +91,7 @@ class MalleabilityFixerApp
 
         $locator->queryDnsSeeds()->then(
             function (Locator $locator) {
-                $this->manager->connectToPeers($locator, 8);
+                $this->manager->connectToPeers($locator, 5);
 
                 $this->loop->addPeriodicTimer(30, function () {
                     echo "Have seen " . $this->inputs . " inputs and " . $this->counter . " high-S signatures \n";
@@ -267,6 +267,10 @@ class MalleabilityFixerApp
                 new Signature($this->adapter, $sig->getR(), $this->math->sub($this->order, $sig->getS())),
                 $txSig->getHashType()
             );
+
+            if (!$this->adapter->validateSignatureElement($txSig->getSignature()->getS(), true)) {
+                die('failed to produce a low-s signature');
+            }
         }
 
         return $txSig;
