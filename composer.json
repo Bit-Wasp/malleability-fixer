@@ -1,0 +1,27 @@
+{
+  "name": "bitwasp/malleability-fixer",
+  "description": "Peer to peer ",
+  "type": "library",
+  "homepage": "https://github.com/afk11/malleability-fixer",
+  "license": "Unlicence",
+  "authors": [
+    {
+      "name": "Thomas Kerin",
+      "homepage": "https://thomaskerin.io",
+      "role": "Author"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "BitWasp\\Fixer\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=5.4.0",
+    "ext-gmp": "*",
+    "ext-json": "*",
+    "bitwasp/bitcoin-p2p": "~0.0.5",
+    "symfony/console": "~2.7",
+    "symfony/yaml": "2.*"
+  }
+}
