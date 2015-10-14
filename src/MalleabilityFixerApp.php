@@ -191,9 +191,9 @@ class MalleabilityFixerApp
             if ($wasMalleated) {
                 echo "Was malleated: $hash - sending to " . (count($this->peers)-1) . "\n";
                 foreach ($this->peers as $peer) {
-                    //if ($sender !== $peer) {
-                    $peer->inv([Inventory::tx(Buffer::hex($newHash))]);
-                    //}
+                    if ($sender !== $peer) {
+                        $peer->inv([Inventory::tx(Buffer::hex($newHash))]);
+                    }
                 }
             }
 
